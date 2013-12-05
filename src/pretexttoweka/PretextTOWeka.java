@@ -25,15 +25,17 @@ public class PretextTOWeka {
     public static void main(String[] args) {
 
         nomeArquivo = args.length > 0 ? args[0] : "resultadoPretext.arff";
+        String diretorio = args.length > 1 ? args[1] : "";
         System.out.println("Lendo Atributos");
-        String atributos = lerArquivoNames("discover", ".names");
+        String atributos = lerArquivoNames(diretorio + "discover", ".names");
+        nomeArquivo = diretorio + nomeArquivo;
         atributos = converteArquivoNames(atributos);
         salvarArquivo(atributos, nomeArquivo, false);
 
         System.out.println("Lendo dados");
         String dados = "@DATA" + "\n";
         salvarArquivo(dados, nomeArquivo, true);
-        dados = lerArquivoData("discover", ".data");
+        dados = lerArquivoData(diretorio + "discover", ".data");
         if (dados != null) {
             salvarArquivo(dados, nomeArquivo, true);
         }
@@ -151,14 +153,14 @@ public class PretextTOWeka {
                     i++;
                     System.out.print("\r" + (i * 100) / qtdLinha + "% lido");
                     //imprime de dez em dez %
-                  //  if (((i * 100) / qtdLinha) % 10 == 0) {
+                    //  if (((i * 100) / qtdLinha) % 10 == 0) {
 
-                        // System.out.println("entrei linha atual = " + i);
-                        String ar = converteArquivoData(linha.toString());
-                        // System.out.println(ar);
-                        salvarArquivo(ar, nomeArquivo, true);
-                        linha = new StringBuilder();
-                 //   }
+                    // System.out.println("entrei linha atual = " + i);
+                    String ar = converteArquivoData(linha.toString());
+                    // System.out.println(ar);
+                    salvarArquivo(ar, nomeArquivo, true);
+                    linha = new StringBuilder();
+                    //   }
 
                 }
                 System.out.println("");
