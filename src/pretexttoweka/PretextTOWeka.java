@@ -24,18 +24,20 @@ public class PretextTOWeka {
      */
     public static void main(String[] args) {
 
-        nomeArquivo = args.length > 0 ? args[0] : "resultadoPretext.arff";
-        String diretorio = args.length > 1 ? args[1] : "";
+        nomeArquivo = args.length > 0 ? args[0] : "/resultadoPretext.arff";
+        String diretorio = args.length > 1 ? args[1] : System.getProperty("user.dir");
         System.out.println("Lendo Atributos");
-        String atributos = lerArquivoNames(diretorio + "discover", ".names");
+        String atributos = lerArquivoNames(diretorio + "/discover/discover", ".names");
+        //String atributos = lerArquivoNames(diretorio, ".names");
         nomeArquivo = diretorio + nomeArquivo;
+        System.out.println(nomeArquivo);
         atributos = converteArquivoNames(atributos);
         salvarArquivo(atributos, nomeArquivo, false);
 
         System.out.println("Lendo dados");
         String dados = "@DATA" + "\n";
         salvarArquivo(dados, nomeArquivo, true);
-        dados = lerArquivoData(diretorio + "discover", ".data");
+        dados = lerArquivoData(diretorio + "/discover/discover", ".data");
         if (dados != null) {
             salvarArquivo(dados, nomeArquivo, true);
         }
