@@ -70,8 +70,32 @@ public class PretextTOWeka {
     private static String converteArquivoData(String arquivoData) {
         // System.out.println("convertendo dados");
         //arquivoData = "@DATA" + "\n" + arquivoData;
-        arquivoData = arquivoData.replaceAll("\".*\",", "");
-        return arquivoData;
+        //arquivoData = arquivoData.replaceAll("\".*\",", "");
+        String linha;
+        double valorLido;
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        linha = arquivoData;
+        linha = linha.replaceAll("\".*\",|", "");
+        String[] dados = linha.split(",");
+        for (int i = 0; i < dados.length; i++) {
+            if (i == dados.length - 1) {
+                sb.append(i).append(" ").append(dados[i]).append("}");
+            } else {
+                valorLido = Double.parseDouble(dados[i]);
+                if (valorLido > 0) {
+                    sb.append(i).append(" ").append(dados[i]).append(",");
+                }
+            }
+        }
+        if ("{".equals(String.valueOf(sb.charAt(sb.length() - 1)))) {
+            sb.append("}");
+        } //else {
+        //  sb.replace(sb.lastIndexOf(","), sb.lastIndexOf(",") + 1, "}");
+        // }
+
+        //return arquivoData;
+        return sb.toString();
     }
 
     public static String lerArquivoNames(String nome, String extensao) {
