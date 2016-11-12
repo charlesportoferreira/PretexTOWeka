@@ -26,7 +26,7 @@ public class PretextTOWeka {
 
         nomeArquivo = args.length > 0 ? "/" + args[0] : "/resultadoPretext.arff";
 //        String diretorio = args.length > 1 ? args[1] : System.getProperty("user.dir");
-        String diretorio =  System.getProperty("user.dir");
+        String diretorio = System.getProperty("user.dir");
         String nomeArquivoName = args.length > 1 ? args[1] : "";
         String nomeArquivoData = args.length > 2 ? args[2] : "";
         System.out.println("Lendo Atributos");
@@ -79,9 +79,16 @@ public class PretextTOWeka {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
         linha = arquivoData;
-        linha = linha.replaceAll("\".*\",|", "");
+        linha = linha.replaceAll("\".*\",|", "");//old version
+//        linha = linha.replaceAll("\".*\\/|\"", "");//new version for dcdistance
         String[] dados = linha.split(",");
         for (int i = 0; i < dados.length; i++) {
+            // remove this if to return to the old version
+//            if (i == 0) {
+//                sb.append(i).append(" ").append(dados[i]).append(",");
+//                continue;
+//            }
+            //***********************************
             if (i == dados.length - 1) {
                 sb.append(i).append(" ").append(dados[i]).append("}");
             } else {
