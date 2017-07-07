@@ -12,54 +12,45 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
  * @author charleshenriqueportoferreira
  */
 public class PretextTOWeka {
 
-    private static String nomeArquivo;
+    private String nomeArquivo;
+    private boolean isreduzido;
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
 
-        nomeArquivo = args.length > 0 ? "/" + args[0] : "/resultadoPretext.arff";
-//        String diretorio = args.length > 1 ? args[1] : System.getProperty("user.dir");
+    public void convert() {
         String diretorio = System.getProperty("user.dir");
-        String nomeArquivoName = args.length > 1 ? args[1] : "";
-        String nomeArquivoData = args.length > 2 ? args[2] : "";
         System.out.println("Lendo Atributos");
-        String atributos = lerArquivoNames(diretorio + "/discover/discover", nomeArquivoName + ".names");
-        //String atributos = lerArquivoNames(diretorio, ".names");
-        nomeArquivo = diretorio + nomeArquivo;
-        System.out.println(nomeArquivo);
+        String atributos = lerArquivoNames(diretorio + "/discover/discover", ".names");
+        String nomeArquivoCompleto = diretorio + nomeArquivo;
+        System.out.println(nomeArquivoCompleto);
         atributos = converteArquivoNames(atributos);
-        salvarArquivo(atributos, nomeArquivo, false);
+        salvarArquivo(atributos, nomeArquivoCompleto, false);
 
         System.out.println("Lendo dados");
-        String dados = "@DATA" + "\n";
-        salvarArquivo(dados, nomeArquivo, true);
-        dados = lerArquivoData(diretorio + "/discover/discover", nomeArquivoData + ".data");
-        if (dados != null) {
-            salvarArquivo(dados, nomeArquivo, true);
-        }
+        String dados = "@data" + "\n";
+        salvarArquivo(dados, nomeArquivoCompleto, true);
+        processaArquivoData(diretorio + "/discover/discover", ".data", nomeArquivoCompleto);
 
     }
 
-    public static String pretextToARFF(String arquivoData, String arquivoNames) {
+    public PretextTOWeka(String nomeArquivo, boolean isReduzido) {
+        this.nomeArquivo = nomeArquivo;
+        this.isreduzido = isReduzido;
+    }
+
+    private String pretextToARFF(String arquivoData, String arquivoNames) {
         arquivoNames = converteArquivoNames(arquivoNames);
-
-        arquivoData = converteArquivoData(arquivoData);
-
+        arquivoData = converteArquivoDataReduzido(arquivoData);
         String arquivoFinal = arquivoNames + "\n" + arquivoData;
         return arquivoFinal;
     }
 
-    private static String converteArquivoNames(String arquivoNames) {
+    private String converteArquivoNames(String arquivoNames) {
         System.out.println("convertendo atributos");
-        // arquivoNames = "@RELATION teste-macbook \n" + arquivoNames;
-        arquivoNames = arquivoNames.replaceAll("att_class.\n", "@RELATION teste-incial");
+        arquivoNames = arquivoNames.replaceAll("att_class\\.\n", "@RELATION " + nomeArquivo);
         arquivoNames = arquivoNames.replaceAll("filename:string:ignore.", "\n");
         arquivoNames = arquivoNames.replaceAll("\":integer\\.", " NUMERIC");
         arquivoNames = arquivoNames.replaceAll("\":real\\.", " NUMERIC");
@@ -70,25 +61,14 @@ public class PretextTOWeka {
         return arquivoNames;
     }
 
-    private static String converteArquivoData(String arquivoData) {
-        // System.out.println("convertendo dados");
-        //arquivoData = "@DATA" + "\n" + arquivoData;
-        //arquivoData = arquivoData.replaceAll("\".*\",", "");
-        String linha;
-        double valorLido;
+    private String converteArquivoDataReduzido(String arquivoData) {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
-        linha = arquivoData;
-        linha = linha.replaceAll("\".*\",|", "");//old version
-//        linha = linha.replaceAll("\".*\\/|\"", "");//new version for dcdistance
+        String linha = arquivoData;
+        linha = linha.replaceAll("\".*\",|", "");
         String[] dados = linha.split(",");
+        double valorLido;
         for (int i = 0; i < dados.length; i++) {
-            // remove this if to return to the old version
-//            if (i == 0) {
-//                sb.append(i).append(" ").append(dados[i]).append(",");
-//                continue;
-//            }
-            //***********************************
             if (i == dados.length - 1) {
                 sb.append(i).append(" ").append(dados[i]).append("}");
             } else {
@@ -100,54 +80,28 @@ public class PretextTOWeka {
         }
         if ("{".equals(String.valueOf(sb.charAt(sb.length() - 1)))) {
             sb.append("}");
-        } //else {
-        //  sb.replace(sb.lastIndexOf(","), sb.lastIndexOf(",") + 1, "}");
-        // }
-
-        //return arquivoData;
+        }
         return sb.toString();
     }
-     private static String converteArquivoData2(String arquivoData) {
-//         System.out.println("convertendo dados");
-//        arquivoData = "@DATA" + "\n" + arquivoData;
-        arquivoData = arquivoData.replaceAll("\".*\",|", "");
-        
 
+    private String converteArquivoData(String arquivoData) {
+        arquivoData = arquivoData.replaceAll("\".*\",|", "");
         return arquivoData;
     }
 
-    public static String lerArquivoNames(String nome, String extensao) {
+    private String lerArquivoNames(String nome, String extensao) {
         StringBuilder linha = new StringBuilder();
         File arquivo = new File(nome + extensao);
-        int qtdLinha = 0;
-
-        // logica para contar o numero de linhas do arquivo
-        LineNumberReader linhaLeitura;
-        try {
-            linhaLeitura = new LineNumberReader(new FileReader(arquivo));
-            try {
-                linhaLeitura.skip(arquivo.length());
-                qtdLinha = linhaLeitura.getLineNumber();
-                // System.out.println("numero de linhas = " + qtdLinha);
-            } catch (IOException ex) {
-                Logger.getLogger(PretextTOWeka.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(PretextTOWeka.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
+        int qtdLinha = getQtdLinha(arquivo);
         try {
             FileReader fr = new FileReader(arquivo);
             BufferedReader br = new BufferedReader(fr);
             int i = 0;
             try {
                 while (br.ready()) {
-
                     linha.append(br.readLine());
                     linha.append("\n");
-                    i++;
-                    System.out.print("\r" + (i * 100) / qtdLinha + "% lido");
+                    System.out.print("\r" + (++i * 100) / qtdLinha + "% lido");
                 }
                 System.out.println("");
                 br.close();
@@ -163,13 +117,38 @@ public class PretextTOWeka {
         return linha.toString();
     }
 
-    public static String lerArquivoData(String nome, String extensao) {
-
+    private void processaArquivoData(String nome, String extensao, String nomeCompleto) {
         StringBuilder linha = new StringBuilder();
         File arquivo = new File(nome + extensao);
-        int qtdLinha = 0;
+        int qtdLinha = getQtdLinha(arquivo);
+        try {
+            FileReader fr = new FileReader(arquivo);
+            BufferedReader br = new BufferedReader(fr);
+            int i = 0;
+            while (br.ready()) {
+                linha.append(br.readLine());
+                System.out.print("\r" + (++i * 100) / qtdLinha + "% lido");
+                String ar;
+                if (isreduzido) {
+                    ar = converteArquivoDataReduzido(linha.toString());
+                } else {
+                    ar = converteArquivoData(linha.toString());
+                }
+                salvarArquivo(ar, nomeCompleto, true);
+                linha = new StringBuilder();
+            }
+            System.out.println("");
+            br.close();
+            fr.close();
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(PretextTOWeka.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-        // logica para contar o numero de linhas do arquivo
+    private int getQtdLinha(File arquivo) {
+        int qtdLinha = 0;
         LineNumberReader linhaLeitura;
         try {
             linhaLeitura = new LineNumberReader(new FileReader(arquivo));
@@ -180,61 +159,21 @@ public class PretextTOWeka {
             } catch (IOException ex) {
                 Logger.getLogger(PretextTOWeka.class.getName()).log(Level.SEVERE, null, ex);
             }
-
         } catch (FileNotFoundException ex) {
             Logger.getLogger(PretextTOWeka.class.getName()).log(Level.SEVERE, null, ex);
+            throw new RuntimeException("File not found: " + arquivo);
         }
-
-        try {
-            FileReader fr = new FileReader(arquivo);
-            //System.out.println(arquivo.length());
-            BufferedReader br = new BufferedReader(fr);
-            int i = 0;
-            try {
-                while (br.ready()) {
-                    linha.append(br.readLine());
-                    // linha.append("\n");
-                    i++;
-                    System.out.print("\r" + (i * 100) / qtdLinha + "% lido");
-                    //imprime de dez em dez %
-                    //  if (((i * 100) / qtdLinha) % 10 == 0) {
-
-                    // System.out.println("entrei linha atual = " + i);
-                    String ar = converteArquivoData(linha.toString());
-                    // System.out.println(ar);
-                    salvarArquivo(ar, nomeArquivo, true);
-                    linha = new StringBuilder();
-                    //   }
-
-                }
-                System.out.println("");
-                br.close();
-                fr.close();
-
-            } catch (IOException ex) {
-                Logger.getLogger(PretextTOWeka.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(PretextTOWeka.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        return linha.toString();
+        return qtdLinha;
     }
 
-    public static void salvarArquivo(String texto, String nomeArquivo, boolean append) {
-        // System.out.println("Salvando Arquivo " + nomeArquivo);
+    private void salvarArquivo(String texto, String nomeArquivo, boolean append) {
         File arquivo = new File(nomeArquivo);
-        boolean existe = arquivo.exists();
         try {
-            if (!existe) {
+            if (!arquivo.exists()) {
                 arquivo.createNewFile();
             }
-        } catch (IOException ex) {
-            Logger.getLogger(PretextTOWeka.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        try {
             try (FileWriter fw = new FileWriter(arquivo, append);
-                    BufferedWriter bw = new BufferedWriter(fw)) {
+                 BufferedWriter bw = new BufferedWriter(fw)) {
                 bw.write(texto);
                 bw.newLine();
                 bw.close();
