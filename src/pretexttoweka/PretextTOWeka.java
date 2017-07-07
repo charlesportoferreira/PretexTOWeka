@@ -107,6 +107,14 @@ public class PretextTOWeka {
         //return arquivoData;
         return sb.toString();
     }
+     private static String converteArquivoData2(String arquivoData) {
+//         System.out.println("convertendo dados");
+//        arquivoData = "@DATA" + "\n" + arquivoData;
+        arquivoData = arquivoData.replaceAll("\".*\",|", "");
+        
+
+        return arquivoData;
+    }
 
     public static String lerArquivoNames(String nome, String extensao) {
         StringBuilder linha = new StringBuilder();
