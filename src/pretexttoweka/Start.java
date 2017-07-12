@@ -29,6 +29,8 @@ public class Start {
                 "Exemplo: java -jar PretextTOWeka.jar genes.arff r\n" +
                 "ou\n" +
                 "java -jar PretextTOWeka.jar genes.arff\n" +
+                "Se nenhum parametro for informado será carregado as opcoes default\n" +
+                "nome do arquivo = resultadoPretext, nao sera usada a forma reduzida\n"+
                 "#############################################################\n");
     }
 
