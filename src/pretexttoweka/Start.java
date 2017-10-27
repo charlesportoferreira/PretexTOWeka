@@ -11,10 +11,10 @@ public class Start {
     public static void main(String[] args) {
         help();
 
-        String nomeArquivo = possuiPrimeiroArgumento(args) ? "/" + args[0] : "/resultadoPretext.arff";
-        boolean isReduzido = (possuiSegundoArgumento(args) && isOpcaoReduzido(args[1])) ? true : false;
+        String fileName = possuiPrimeiroArgumento(args) ? "/" + args[0] : "/resultadoPretext.arff";
+        boolean isReduced = (possuiSegundoArgumento(args) && isOpcaoReduzido(args[1]));
 
-        PretextTOWeka pretextTOWeka = new PretextTOWeka(nomeArquivo, isReduzido);
+        PretextToWeka pretextTOWeka = new PretextToWeka(fileName, isReduced);
         pretextTOWeka.convert();
     }
 

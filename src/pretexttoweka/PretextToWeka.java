@@ -14,29 +14,27 @@ import java.util.logging.Logger;
 /**
  * @author charleshenriqueportoferreira
  */
-public class PretextTOWeka {
+public class PretextToWeka {
 
-    private String nomeArquivo;
+    public String nomeArquivo;
     private boolean isreduzido;
 
 
     public void convert() {
-        String diretorio = System.getProperty("user.dir");
-        System.out.println("Lendo Atributos");
-        String atributos = lerArquivoNames(diretorio + "/discover/discover", ".names");
-        String nomeArquivoCompleto = diretorio + nomeArquivo;
+        String currently = System.getProperty("user.dir");
+        System.out.println("reading attributes");
+        String attributes = lerArquivoNames(currently + "/discover/discover", ".names");
+        String nomeArquivoCompleto = currently + nomeArquivo;
         System.out.println(nomeArquivoCompleto);
-        atributos = converteArquivoNames(atributos);
-        salvarArquivo(atributos, nomeArquivoCompleto, false);
-
+        attributes = converteArquivoNames(attributes);
+        saveFile(attributes, nomeArquivoCompleto, false);
         System.out.println("Lendo dados");
         String dados = "@data" + "\n";
-        salvarArquivo(dados, nomeArquivoCompleto, true);
-        processaArquivoData(diretorio + "/discover/discover", ".data", nomeArquivoCompleto);
-
+        saveFile(dados, nomeArquivoCompleto, true);
+        processaArquivoData(currently + "/discover/discover", ".data", nomeArquivoCompleto);
     }
 
-    public PretextTOWeka(String nomeArquivo, boolean isReduzido) {
+    public PretextToWeka(String nomeArquivo, boolean isReduzido) {
         this.nomeArquivo = nomeArquivo;
         this.isreduzido = isReduzido;
     }
@@ -47,6 +45,7 @@ public class PretextTOWeka {
         String arquivoFinal = arquivoNames + "\n" + arquivoData;
         return arquivoFinal;
     }
+
 
     private String converteArquivoNames(String arquivoNames) {
         System.out.println("convertendo atributos");
@@ -60,6 +59,7 @@ public class PretextTOWeka {
         arquivoNames = arquivoNames.replaceAll("\"", "@ATTRIBUTE ");
         return arquivoNames;
     }
+
 
     private String converteArquivoDataReduzido(String arquivoData) {
         StringBuilder sb = new StringBuilder();
@@ -92,7 +92,7 @@ public class PretextTOWeka {
     private String lerArquivoNames(String nome, String extensao) {
         StringBuilder linha = new StringBuilder();
         File arquivo = new File(nome + extensao);
-        int qtdLinha = getQtdLinha(arquivo);
+        int qtdLinha = getNumLines(arquivo);
         try {
             FileReader fr = new FileReader(arquivo);
             BufferedReader br = new BufferedReader(fr);
@@ -108,19 +108,19 @@ public class PretextTOWeka {
                 fr.close();
 
             } catch (IOException ex) {
-                Logger.getLogger(PretextTOWeka.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(PretextToWeka.class.getName()).log(Level.SEVERE, null, ex);
             }
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(PretextTOWeka.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(PretextToWeka.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         return linha.toString();
     }
 
-    private void processaArquivoData(String nome, String extensao, String nomeCompleto) {
+    public void processaArquivoData(String nome, String extensao, String nomeCompleto) {
         StringBuilder linha = new StringBuilder();
         File arquivo = new File(nome + extensao);
-        int qtdLinha = getQtdLinha(arquivo);
+        int qtdLinha = getNumLines(arquivo);
         try {
             FileReader fr = new FileReader(arquivo);
             BufferedReader br = new BufferedReader(fr);
@@ -134,53 +134,93 @@ public class PretextTOWeka {
                 } else {
                     ar = converteArquivoData(linha.toString());
                 }
-                salvarArquivo(ar, nomeCompleto, true);
+                saveFile(ar, nomeCompleto, true);
                 linha = new StringBuilder();
             }
             System.out.println("");
             br.close();
             fr.close();
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(PretextTOWeka.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(PretextToWeka.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private int getQtdLinha(File arquivo) {
-        int qtdLinha = 0;
-        LineNumberReader linhaLeitura;
-        try {
-            linhaLeitura = new LineNumberReader(new FileReader(arquivo));
-            try {
-                linhaLeitura.skip(arquivo.length());
-                qtdLinha = linhaLeitura.getLineNumber();
-                System.out.println("numero de linhas = " + qtdLinha);
-            } catch (IOException ex) {
-                Logger.getLogger(PretextTOWeka.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(PretextTOWeka.class.getName()).log(Level.SEVERE, null, ex);
-            throw new RuntimeException("File not found: " + arquivo);
+    public void processData(String oldFile, String newFile, String[] labels, int numFeatures) {
+        File file = new File(oldFile);
+        int numLine = getNumLines(file);
+        System.out.println(numLine);
+        try (FileReader fr = new FileReader(oldFile); BufferedReader br = new BufferedReader(fr)) {
+            reduceAndSave(newFile, labels, br, numLine, numFeatures);
+            br.close();
+            fr.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        return qtdLinha;
     }
 
-    private void salvarArquivo(String texto, String nomeArquivo, boolean append) {
-        File arquivo = new File(nomeArquivo);
-        try {
-            if (!arquivo.exists()) {
-                arquivo.createNewFile();
+    private void reduceAndSave(String newFile, String[] labels, BufferedReader br, int numLine, int numFeatures) throws IOException {
+        String line;
+        int i = 0;
+        while (br.ready()) {
+            line = br.readLine();
+            String reducedLine = nonSparseLineToSparseLine(line);
+            reducedLine = addLabel(labels[i], numFeatures, reducedLine);
+            saveFile(reducedLine, newFile, true);
+            System.out.print("\r" + (++i * 100) / numLine + "% done");
+        }
+        System.out.println("");
+    }
+
+    private String addLabel(String label, int numLabels, String reducedLine) {
+        return reducedLine.replace("}", "," + numLabels + " " + label + "}");
+    }
+
+    private String nonSparseLineToSparseLine(String nonSparseLine) {
+        StringBuilder sb = new StringBuilder("{");
+        String[] data = nonSparseLine.split(",");
+        double value;
+        for (int i = 0; i < data.length; i++) {
+            value = Double.parseDouble(data[i]);
+            if (value > 0) {
+                sb.append(i).append(" ").append(data[i]).append(",");
             }
-            try (FileWriter fw = new FileWriter(arquivo, append);
-                 BufferedWriter bw = new BufferedWriter(fw)) {
-                bw.write(texto);
+        }
+        int lastIndex = sb.lastIndexOf(",");
+        sb.replace(lastIndex, sb.length(), "}");
+        return sb.toString();
+    }
+
+    private int getNumLines(File fileName) {
+        try {
+            return countLines(fileName);
+        } catch (IOException ex) {
+            Logger.getLogger(PretextToWeka.class.getName()).log(Level.SEVERE, null, ex);
+            throw new RuntimeException("File not found: " + fileName);
+        }
+    }
+
+    private int countLines(File fileName) throws IOException {
+        LineNumberReader lnr = new LineNumberReader(new FileReader(fileName));
+        lnr.skip(fileName.length());
+        return lnr.getLineNumber();
+    }
+
+    public void saveFile(String data, String fileName, boolean append) {
+        File file = new File(fileName);
+        try {
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+            try (FileWriter fw = new FileWriter(file, append); BufferedWriter bw = new BufferedWriter(fw)) {
+                bw.write(data);
                 bw.newLine();
                 bw.close();
                 fw.close();
             }
         } catch (IOException ex) {
-            Logger.getLogger(PretextTOWeka.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(PretextToWeka.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }
