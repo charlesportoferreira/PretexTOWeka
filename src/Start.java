@@ -1,4 +1,4 @@
-package pretexttoweka;
+
 
 /**
  * Created by charles on 07/07/17.
@@ -14,8 +14,8 @@ public class Start {
         String fileName = possuiPrimeiroArgumento(args) ? "/" + args[0] : "/resultadoPretext.arff";
         boolean isReduced = (possuiSegundoArgumento(args) && isOpcaoReduzido(args[1]));
 
-        PretextToWeka pretextTOWeka = new PretextToWeka(fileName, isReduced);
-        pretextTOWeka.convert();
+        PretextToWeka ptw = new PretextToWeka(fileName, isReduced);
+        ptw.convert();
     }
 
     private static void help() {
